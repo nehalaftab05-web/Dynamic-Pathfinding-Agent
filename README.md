@@ -2,31 +2,167 @@
 <img width="959" height="490" alt="image" src="https://github.com/user-attachments/assets/919261d5-d915-4bae-a700-0db106b1cb48" />
 <img width="959" height="472" alt="image" src="https://github.com/user-attachments/assets/502d0b18-7310-4946-a1fd-0c3a85ee7dcd" />
 <img width="959" height="482" alt="image" src="https://github.com/user-attachments/assets/d840e284-4375-4cd1-a30b-662017556939" />
-Dynamic Pathfinding Agent — Premium UI EditionAn advanced, interactive visualizer demonstrating adversarial and heuristic search behavior across dynamic environments. Built with a modern dark-mode Tkinter UI framework, this application displays a grid-based playground to evaluate, stress-test, and benchmark pathfinding mechanics in real-time.🛠️ System Architecture & Framework BreakdownThe application follows a synchronized Model-View-Controller (MVC) structural pattern tailored for Tkinter's single-threaded event loop architecture.       [ USER INTERACTION ]
-                 │ (Mouse Click / Slider Adjustment)
-                 ▼
-         ┌───────────────┐
-         │  Controllers  │ (Event Handlers, Speed Dispatcher)
-         └───────┬───────┘
-                 │
-        ┌────────┴────────┐
-        ▼                 ▼
- ┌─────────────┐   ┌─────────────┐
- │    Model    │   │    View     │
- │ ─────────── │   │ ─────────── │
- │ Graph Grid  │   │ Tkinter UI  │
- │ Coordinates │◀──┤ Tkinter     │
- │ State Matrix│   │ Canvas      │
- └─────────────┘   └─────────────┘
-1. Architectural PipelinesThe Canvas Rendering Pipeline: The layout maps coordinates out of a localized multidimensional array structure (Matrix[r][c]) to an absolute, space-calculated representation on a persistent tk.Canvas. Element states are indexed on-the-fly, assigning corresponding hex color tokens directly to layout cells via specific canvas ID tag updates.The Animation Engine: The search loop avoids application-level freezing by routing state-updates through a cooperative scheduling workflow. Instead of using time.sleep(), it relies on non-blocking root.after() intervals to feed structural steps to the main thread smoothly.Dynamic Obstacle & Replanning Pipeline: Real-time canvas changes (such as toggling node coordinates or injecting runtime blockers) prompt immediate state alterations in the memory array. This triggers an instant path recalculation from the agent's current coordinates.🔬 Deep-Dive: Search Theory & AlgorithmsThe system evaluates two core informed search mechanics alongside alternative distance calculation math equations:1. A* Search AlgorithmThe A* implementation targets nodes based on minimal total expected cost:$$f(n) = g(n) + h(n)$$Where:$g(n)$ represents the exact step distance tracking out from the origin node to node $n$.$h(n)$ represents the estimated heuristic distance metric evaluated from $n$ to the designated goal.By maintaining monotonicity when picking non-diagonal cardinal movements, A* guarantees an optimal, shortest-path trajectory.2. Greedy Best-First Search (GBFS)GBFS strips out standard travel accumulation tracking, evaluating nodes based purely on local greedy heuristic assumptions:$$f(n) = h(n)$$While GBFS drastically slashes memory tracking and search space volume during unblocked paths, it easily falls into local minima traps when facing concave obstacles. This results in heavy node coverage and sprawling frontier loops.3. Heuristic Formulations   Manhattan Distance (L1 Norm)            Euclidean Distance (L2 Norm)
-       ┌───┐───┐───┐───★                       ┌───┐───┐───┐───★
-       │   │   │   │ ▲                         │   │   │   │ ↗
-       ├───┼───┼───┼───┤                       ├───┼───┼───┼───┤
-       │   │   │   │ │                         │   │   │ ↗ │
-       ├───┼───┼───┼───┤                       ├───┼───┼───┼───┤
-       ●───┴───┴───┴───┘                       ●───┴───┴───┴───┘
-    Δx = 4, Δy = 2 | Total = 6              Δx = 4, Δy = 2 | Total = 4.47
-Manhattan Distance ($L_1$ Norm): Used primarily for standard grid layouts restricted to 4-way cardinal directions (Up, Down, Left, Right).$$h(n) = |x_n - x_{\text{goal}}| + |y_n - y_{\text{goal}}|$$Euclidean Distance ($L_2$ Norm): Calculates the direct, straight-line distance between two points. Useful for analyzing pathfinding behavior when diagonal or unconstrained movement is permitted.$$h(n) = \sqrt{(x_n - x_{\text{goal}})^2 + (y_n - y_{\text{goal}})^2}$$💻 Source Code Structure & Implementation Walkthrough1. Algorithmic Functionsmanhattan(a, b) / euclidean(a, b)Mathematical utility coordinates taking tuple tracking indices (row, col) to compute heuristic spatial costs towards targeted end goals.get_neighbors(node, rows, cols, grid)Generates valid valid moves by checking the four cardinal directions against grid boundaries and obstacle structures (C_WALL).2. Custom UI Component ClassesTo achieve a clean, modern aesthetic, the interface overrides standard legacy operating system window accents using tailored sub-classes:FlatButton: A customized tk.Canvas element equipped with custom hover transitions and rounded corners, bypassing the rendering limitations of native Windows/Linux button elements.ToggleGroup: Manages state tracking across interactive setting selectors, keeping properties like selected variables, active highlight states, and styling choices cleanly organized.SliderCard: Encapsulates a standard tk.Scale node inside a modern dark-mode container card, complete with explicit minimum/maximum value indicators.MetricCard: A fast data display component that links directly to real-time text variables, ensuring performance updates render immediately.SectionHeader / LegendDot: Structural layout components that keep the control panel organized and scan-able.🎛️ Detailed Control Panel & Dashboard SystemsThe system gives you precise control over variables right from the dashboard sidebar:Algorithm Selection: Toggle between A* and Greedy Best-First Search on the fly to compare performance under identical layout conditions.Heuristic Mode: Switch between Manhattan and Euclidean metrics to see how different heuristic mathematical equations affect the shape of the search tree.Speed Controller: Fine-tune delay configurations anywhere from 1ms to 200ms per step to either inspect node decisions closely or run tests instantly.Dynamic Generation Content: Instantly populate the canvas with randomized layouts using a coverage density slider.📈 Performance Benchmarking Metric SuiteThe dashboard features a live data monitoring system to measure efficiency metrics across search cycles:Metric NameTracking TargetsPractical ValueExecution StateCurrent runtime status (IDLE, RUNNING, DONE).Displays the operational status of the background algorithm loop.Path LengthTotal steps required to navigate from Start to Goal.Evaluates path efficiency; highlights suboptimal choices made by GBFS.Nodes VisitedTotal count of closed-list nodes popped out of the priority queue.Measures memory usage and search tree expansion size.Time ElapsedThe exact duration of the search routine (measured in milliseconds).Quantifies processing efficiency, independent of artificial interface delays.🚀 Installation & OperationPrerequisitesPython 3.8+Tkinter (included in standard Python distributions; linux environments may require sudo apt-get install python3-tk).ExecutionClone or download the script file into a local working directory.Run the application from your terminal:Bashpython main.py
-Operational WorkflowsDraw Obstacles: Click and drag your mouse over empty cells (C_EMPTY) to place wall nodes.Clear Obstacles: Right-click or drag over active walls to remove them.Reposition Agents: Left-click and drag the designated Start (C_START) or Goal (C_GOAL) markers to change your pathfinding coordinates instantly.
 
+
+```markdown
+# Dynamic Pathfinding Agent — Premium UI Edition
+
+An advanced, interactive visualizer demonstrating adversarial and heuristic search behavior across dynamic environments. Built with a modern dark-mode Tkinter UI framework, this application displays a grid-based playground to evaluate, stress-test, and benchmark pathfinding mechanics in real-time.
+
+---
+
+## 🛠️ System Architecture & Framework Breakdown
+
+The application follows a synchronized **Model-View-Controller (MVC)** structural pattern tailored for Tkinter's single-threaded event loop architecture.
+
+
+```
+
+```
+   [ USER INTERACTION ]
+             │ (Mouse Click / Slider Adjustment)
+             ▼
+     ┌───────────────┐
+     │  Controllers  │ (Event Handlers, Speed Dispatcher)
+     └───────┬───────┘
+             │
+    ┌────────┴────────┐
+    ▼                 ▼
+
+```
+
+┌─────────────┐   ┌─────────────┐
+│    Model    │   │    View     │
+│ ─────────── │   │ ─────────── │
+│ Graph Grid  │   │ Tkinter UI  │
+│ Coordinates │◀──┤ Tkinter     │
+│ State Matrix│   │ Canvas      │
+└─────────────┘   └─────────────┘
+
+```
+
+### 1. Architectural Pipelines
+
+* **The Canvas Rendering Pipeline**: The layout maps coordinates out of a localized multidimensional array structure (`Matrix[r][c]`) to an absolute, space-calculated representation on a persistent `tk.Canvas`. Element states are indexed on-the-fly, assigning corresponding hex color tokens directly to layout cells via specific canvas ID tag updates.
+* **The Animation Engine**: The search loop avoids application-level freezing by routing state-updates through a cooperative scheduling workflow. Instead of using `time.sleep()`, it relies on non-blocking `root.after()` intervals to feed structural steps to the main thread smoothly.
+* **Dynamic Obstacle & Replanning Pipeline**: Real-time canvas changes (such as toggling node coordinates or injecting runtime blockers) prompt immediate state alterations in the memory array. This triggers an instant path recalculation from the agent's current coordinates.
+
+---
+
+## 🔬 Deep-Dive: Search Theory & Algorithms
+
+The system evaluates two core informed search mechanics alongside alternative distance calculation math equations:
+
+### 1. A* Search Algorithm
+
+The A* implementation targets nodes based on minimal total expected cost:
+
+$$f(n) = g(n) + h(n)$$
+
+Where:
+* $g(n)$ represents the exact step distance tracking out from the origin node to node $n$.
+* $h(n)$ represents the estimated heuristic distance metric evaluated from $n$ to the designated goal.
+
+By maintaining monotonicity when picking non-diagonal cardinal movements, A* guarantees an optimal, shortest-path trajectory.
+
+### 2. Greedy Best-First Search (GBFS)
+
+GBFS strips out standard travel accumulation tracking, evaluating nodes based purely on local greedy heuristic assumptions:
+
+$$f(n) = h(n)$$
+
+While GBFS drastically slashes memory tracking and search space volume during unblocked paths, it easily falls into local minima traps when facing concave obstacles. This results in heavy node coverage and sprawling frontier loops.
+
+### 3. Heuristic Formulations
+
+
+```
+
+Manhattan Distance (L1 Norm)            Euclidean Distance (L2 Norm)
+┌───┐───┐───┐───★                       ┌───┐───┐───┐───★
+│   │   │   │ ▲                         │   │   │   │ ↗
+├───┼───┼───┼───┤                       ├───┼───┼───┼───┤
+│   │   │   │ │                         │   │   │ ↗ │
+├───┼───┼───┼───┤                       ├───┼───┼───┼───┤
+●───┴───┴───┴───┘                       ●───┴───┴───┴───┘
+Δx = 4, Δy = 2 | Total = 6              Δx = 4, Δy = 2 | Total = 4.47
+
+```
+
+* **Manhattan Distance ($L_1$ Norm)**: Used primarily for standard grid layouts restricted to 4-way cardinal directions (Up, Down, Left, Right).
+  $$h(n) = |x_n - x_{\text{goal}}| + |y_n - y_{\text{goal}}|$$
+* **Euclidean Distance ($L_2$ Norm)**: Calculates the direct, straight-line distance between two points. Useful for analyzing pathfinding behavior when diagonal or unconstrained movement is permitted.
+  $$h(n) = \sqrt{(x_n - x_{\text{goal}})^2 + (y_n - y_{\text{goal}})^2}$$
+
+---
+
+## 💻 Source Code Structure & Implementation Walkthrough
+
+### 1. Algorithmic Functions
+
+#### `manhattan(a, b)` / `euclidean(a, b)`
+Mathematical utility coordinates taking tuple tracking indices `(row, col)` to compute heuristic spatial costs towards designated end goals.
+
+#### `get_neighbors(node, rows, cols, grid)`
+Generates valid valid moves by checking the four cardinal directions against grid boundaries and obstacle structures (`C_WALL`).
+
+### 2. Custom UI Component Classes
+
+To achieve a clean, modern aesthetic, the interface overrides standard legacy operating system window accents using tailored sub-classes:
+
+* **`FlatButton`**: A customized `tk.Canvas` element equipped with custom hover transitions and rounded corners, bypassing the rendering limitations of native Windows/Linux button elements.
+* **`ToggleGroup`**: Manages state tracking across interactive setting selectors, keeping properties like selected variables, active highlight states, and styling choices cleanly organized.
+* **`SliderCard`**: Encapsulates a standard `tk.Scale` node inside a modern dark-mode container card, complete with explicit minimum/maximum value indicators.
+* **`MetricCard`**: A fast data display component that links directly to real-time text variables, ensuring performance updates render immediately.
+* **`SectionHeader` / `LegendDot`**: Structural layout components that keep the control panel organized and scan-able.
+
+---
+
+## 🎛️ Detailed Control Panel & Dashboard Systems
+
+The system gives you precise control over variables right from the dashboard sidebar:
+
+* **Algorithm Selection**: Toggle between A* and Greedy Best-First Search on the fly to compare performance under identical layout conditions.
+* **Heuristic Mode**: Switch between Manhattan and Euclidean metrics to see how different heuristic mathematical equations affect the shape of the search tree.
+* **Speed Controller**: Fine-tune delay configurations anywhere from `1ms` to `200ms` per step to either inspect node decisions closely or run tests instantly.
+* **Dynamic Generation Content**: Instantly populate the canvas with randomized layouts using a coverage density slider.
+
+---
+
+## 📈 Performance Benchmarking Metric Suite
+
+The dashboard features a live data monitoring system to measure efficiency metrics across search cycles:
+
+| Metric Name | Tracking Targets | Practical Value |
+| :--- | :--- | :--- |
+| **Execution State** | Current runtime status (`IDLE`, `RUNNING`, `DONE`). | Displays the operational status of the background algorithm loop. |
+| **Path Length** | Total steps required to navigate from Start to Goal. | Evaluates path efficiency; highlights suboptimal choices made by GBFS. |
+| **Nodes Visited** | Total count of closed-list nodes popped out of the priority queue. | Measures memory usage and search tree expansion size. |
+| **Time Elapsed** | The exact duration of the search routine (measured in milliseconds). | Quantifies processing efficiency, independent of artificial interface delays. |
+
+---
+
+## 🚀 Installation & Operation
+
+### Prerequisites
+* **Python 3.8+**
+* **Tkinter** (included in standard Python distributions; linux environments may require `sudo apt-get install python3-tk`).
+
+### Execution
+1. Clone or download the script file into a local working directory.
+2. Run the application from your terminal:
+```bash
+python main.py
+
+```
+
+### Operational Workflows
+
+* **Draw Obstacles**: Click and drag your mouse over empty cells (`C_EMPTY`) to place wall nodes.
+* **Clear Obstacles**: Right-click or drag over active walls to remove them.
+* **Reposition Agents**: Left-click and drag the designated Start (`C_START`) or Goal (`C_GOAL`) markers to change your pathfinding coordinates instantly.
+
+```
+
+```
 
